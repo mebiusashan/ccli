@@ -1,0 +1,50 @@
+
+#ifndef CCLI_H
+#define CCLI_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+#include <stdint.h>
+    
+struct ccli_command;
+struct ccli_option;
+    
+typedef int ccli_callback (struct ccli_command *self, const struct ccli_option *option);
+
+enum ccli_option_type {
+    CCLI_OPT_BOOL,
+    CCLI_OPT_INT,
+    CCLI_OPT_FLOAT,
+    CCLI_OPT_STRING,
+};
+
+struct ccli_option {
+    enum ccli_option_type type;
+    const char short_name;
+    const char *long_name;
+    void *value;
+    const char *help;
+    intptr_t data;
+};
+
+struct ccli_command {
+    const char *name;
+    const char *description;
+    const char *epilog;
+    ccli_callback *callback;
+    const struct ccli_option *options;
+    const struct ccli_command *sub_commands;
+};
+
+#define CCLI_BUILT_COMMAND(...) { __VA_ARGS__ }
+#define CCLI_BUILT_OPT_BOOL(...) {CCLI_OPT_BOOL, __VA_ARGS__ }
+
+void ccli_run(struct ccli_command *cmd, int argc, const char **argv);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
