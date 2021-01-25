@@ -10,7 +10,7 @@ ccli_run(struct ccli_command *cmd, int argc, const char **argv){
             printf("%s\n", argv[i]);
     }
     
-    int len = sizeof(cmd->sub_commands);
+    //int len = sizeof(cmd->sub_commands);
     printf("cmds：%s\n", cmd->options->long_name);
     
     /*
