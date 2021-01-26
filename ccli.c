@@ -215,9 +215,11 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                 exit ( 0 );
             }
         }
+        int isOptButNotDefine = 0;
 
         while ( opt ) {
             if ( str[1]=='-' ) {
+                isOptButNotDefine = 1;
                 if ( strlen ( str ) >= ( strlen ( opt->long_name )+CCLI_LONG_NAME_PREFIX ) ) {
                     int l = strlen ( opt->long_name );
                     char *c = ( char * ) malloc ( l );
@@ -229,13 +231,19 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                     }
                     //printf("%s - %s -- %d\n", s, opt->long_name, strcoll(c, opt->long_name));
                     if ( strcoll ( c, opt->long_name ) ==0 ) {
+                        isOptButNotDefine = 0;
                         switch ( opt->type ) {
                         case CCLI_OPT_BOOL:
                             * ( int * ) opt->value = 1;
                             break;
                         case CCLI_OPT_INT:
                             if ( l==strlen ( str )-CCLI_LONG_NAME_PREFIX ) {
-                                * ( int * ) opt->value = atoi ( argv[i++] );
+                                if ( ( i+1 ) <argc ) {
+                                    * ( int * ) opt->value = atoi ( argv[i++] );
+                                } else {
+                                    fprintf ( stderr, "error: option requires an argument -- \'--%s\'\n", opt->long_name );
+                                    exit ( 1 );
+                                }
                             } else {
                                 int offset = str[CCLI_LONG_NAME_PREFIX+l]=='='?1:0;
                                 const char *v = str + CCLI_LONG_NAME_PREFIX +l+offset;
@@ -244,7 +252,12 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                             break;
                         case CCLI_OPT_FLOAT:
                             if ( l==strlen ( str )-CCLI_LONG_NAME_PREFIX ) {
-                                * ( float * ) opt->value = atof ( argv[i++] );
+                                if ( ( i+1 ) <argc ) {
+                                    * ( float * ) opt->value = atof ( argv[i++] );
+                                } else {
+                                    fprintf ( stderr, "error: option requires an argument -- \'--%s\'\n", opt->long_name );
+                                    exit ( 1 );
+                                }
                             } else {
                                 int offset = str[CCLI_LONG_NAME_PREFIX+l]=='='?1:0;
                                 const char *v = str + CCLI_LONG_NAME_PREFIX +l+offset;
@@ -253,7 +266,12 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                             break;
                         case CCLI_OPT_STRING:
                             if ( l==strlen ( str )-CCLI_LONG_NAME_PREFIX ) {
-                                * ( const char ** ) opt->value = ( char * ) argv[++i];
+                                if ( ( i+1 ) <argc ) {
+                                    * ( const char ** ) opt->value = ( char * ) argv[++i];
+                                } else {
+                                    fprintf ( stderr, "error: option requires an argument -- \'--%s\'\n", opt->long_name );
+                                    exit ( 1 );
+                                }
                             } else {
                                 int offset = str[CCLI_LONG_NAME_PREFIX+l]=='='?1:0;
                                 const char *v = str + CCLI_LONG_NAME_PREFIX +l+offset;
@@ -264,12 +282,14 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                     }
                 }
             } else {
+                isOptButNotDefine = 1;
                 if ( str[1]=='h' ) {
                     ccli_help ( cmd );
                     exit ( 0 );
                 }
 
                 if ( str[1]==opt->short_name ) {
+                    isOptButNotDefine = 0;
                     int l =1;
                     switch ( opt->type ) {
                     case CCLI_OPT_BOOL:
@@ -277,7 +297,12 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                         break;
                     case CCLI_OPT_INT:
                         if ( l==strlen ( str )-CCLI_SHORT_NAME_PREFIX ) {
-                            * ( int * ) opt->value = atoi ( argv[i++] );
+                            if ( ( i+1 ) <argc ) {
+                                * ( int * ) opt->value = atoi ( argv[i++] );
+                            } else {
+                                fprintf ( stderr, "error: option requires an argument -- \'%c\'\n", opt->short_name );
+                                exit ( 1 );
+                            }
                         } else {
                             int offset = str[CCLI_SHORT_NAME_PREFIX+l]=='='?1:0;
                             const char *v = str + CCLI_SHORT_NAME_PREFIX +l+offset;
@@ -286,7 +311,12 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                         break;
                     case CCLI_OPT_FLOAT:
                         if ( l==strlen ( str )-CCLI_SHORT_NAME_PREFIX ) {
-                            * ( float * ) opt->value = atof ( argv[i++] );
+                            if ( ( i+1 ) <argc ) {
+                                * ( float * ) opt->value = atof ( argv[i++] );
+                            } else {
+                                fprintf ( stderr, "error: option requires an argument -- \'%c\'\n", opt->short_name );
+                                exit ( 1 );
+                            }
                         } else {
                             int offset = str[CCLI_SHORT_NAME_PREFIX+l]=='='?1:0;
                             const char *v = str + CCLI_SHORT_NAME_PREFIX +l+offset;
@@ -295,7 +325,12 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                         break;
                     case CCLI_OPT_STRING:
                         if ( l==strlen ( str )-CCLI_SHORT_NAME_PREFIX ) {
-                            * ( const char ** ) opt->value = ( char * ) argv[++i];
+                            if ( ( i+1 ) <argc ) {
+                                * ( const char ** ) opt->value = ( char * ) argv[++i];
+                            } else {
+                                fprintf ( stderr, "error: option requires an argument -- \'%c\'\n", opt->short_name );
+                                exit ( 1 );
+                            }
                         } else {
                             int offset = str[CCLI_SHORT_NAME_PREFIX+l]=='='?1:0;
                             const char *v = str + CCLI_SHORT_NAME_PREFIX +l+offset;
@@ -306,6 +341,10 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                 }
             }
             opt = opt->next_opt;
+        }
+        if ( isOptButNotDefine==1 ) {
+            fprintf ( stderr, "error: invalid option \'%s\'\n", str );
+            exit ( 1 );
         }
     }
     *index = i;
