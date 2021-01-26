@@ -24,11 +24,11 @@ struct  ccli_opt {
     enum ccli_option_type type;
     char short_name;
     const char *long_name;
-    CCLI_OPT *prev_opt;
+    //CCLI_OPT *prev_opt;
     CCLI_OPT *next_opt;
     void *value;
     const char *help;
-    intptr_t data;
+    //intptr_t data;
 };
 
 struct ccli_cmd {
@@ -42,7 +42,7 @@ struct ccli_cmd {
     CCLI_CMD *first_sub_cmd;
     CCLI_CMD *last_sub_cmd;
     CCLI_CMD *parent_cmd;
-    CCLI_CMD *prev_cmd;
+    //CCLI_CMD *prev_cmd;
     CCLI_CMD *next_cmd;
 };
 

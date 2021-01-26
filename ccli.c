@@ -20,7 +20,7 @@ create_cmd(char *name,char *help, char *des, char *epilog, ccli_callback *callba
     cmd->last_sub_cmd = NULL;
     cmd->parent_cmd = NULL;
     cmd->next_cmd = NULL;
-    cmd->prev_cmd = NULL;
+    //cmd->prev_cmd = NULL;
     return cmd;
 }
 
@@ -48,11 +48,11 @@ set_sub_cmd( CCLI_CMD *root, char *name, char *help, char *des, char *epilog, cc
             if(root->first_sub_cmd!=sub_cmd)
             {
                 root->first_sub_cmd->next_cmd = root->last_sub_cmd;
-                root->last_sub_cmd->prev_cmd = root->first_sub_cmd;
+                //root->last_sub_cmd->prev_cmd = root->first_sub_cmd;
             }
         } else {
             root->last_sub_cmd->next_cmd = sub_cmd;
-            sub_cmd->prev_cmd = root->last_sub_cmd;
+            //sub_cmd->prev_cmd = root->last_sub_cmd;
             root->last_sub_cmd = sub_cmd;
         }
     }
@@ -66,7 +66,7 @@ create_opt(enum ccli_option_type type, char short_name, const char *long_name, v
     opt->type = type;
     opt->short_name = short_name;
     opt->long_name = long_name;
-    opt->prev_opt = NULL;
+    //opt->prev_opt = NULL;
     opt->next_opt = NULL;
     opt->value = value;
     opt->help = help;
@@ -87,11 +87,11 @@ set_opt(CCLI_CMD *cmd, enum ccli_option_type type, char short_name, const char *
         if(cmd->first_opt!=opt)
         {
             cmd->first_opt->next_opt = opt;
-            opt->prev_opt = cmd->first_opt;
+            //opt->prev_opt = cmd->first_opt;
         }
     } else {
         cmd->last_opt->next_opt = opt;
-        opt->prev_opt = cmd->last_opt;
+        //opt->prev_opt = cmd->last_opt;
         cmd->last_opt = opt;
     }
 }
