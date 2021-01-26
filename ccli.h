@@ -5,12 +5,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 #include <stdint.h>
 
 typedef struct ccli_cmd CCLI_CMD;
 typedef struct ccli_opt CCLI_OPT;
-    
+
 typedef int ccli_callback (int argc, const char **argv);
 
 enum ccli_option_type {
@@ -20,7 +20,7 @@ enum ccli_option_type {
     CCLI_OPT_STRING,
 };
 
- struct  ccli_opt{
+struct  ccli_opt {
     enum ccli_option_type type;
     char short_name;
     const char *long_name;
@@ -57,7 +57,7 @@ set_opt(CCLI_CMD *cmd, enum ccli_option_type type, char short_name, const char *
 
 int
 ccli_r(CCLI_CMD *root, int argc, const char **argv);
-    
+
 
 #ifdef __cplusplus
 }

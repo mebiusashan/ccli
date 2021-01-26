@@ -96,7 +96,8 @@ set_opt(CCLI_CMD *cmd, enum ccli_option_type type, char short_name, const char *
     }
 }
 
-#define PRINTF_OPT(...) printf("  -%c, --%s %s  %s\n",__VA_ARGS__);
+#define OPTION_CHAR_WIDTH 8
+#define PRINTF_OPT(...) printf("  -%c, --%-*s%-*s%s\n",__VA_ARGS__);
 
 void
 ccli_help(CCLI_CMD *cmd)
@@ -133,36 +134,49 @@ ccli_help(CCLI_CMD *cmd)
     if(curCmd->first_sub_cmd!=NULL)
     {
         printf("\nCommands:\n");
+        int width = 2;
         curCmd = cmd->first_sub_cmd;
         while(curCmd) {
-            printf("  %s  %s\n",curCmd->name, curCmd->description);
+            width = width<strlen(curCmd->name)?strlen(curCmd->name)+2:width;
+            curCmd = curCmd->next_cmd;
+        }
+        curCmd = cmd->first_sub_cmd;
+        while(curCmd) {
+            int w = width-strlen(curCmd->name);
+            printf("  %-*s  %s\n",w, curCmd->name, curCmd->description);
             curCmd = curCmd->next_cmd;
         }
     }
 
     printf("\nOptions:\n");
+    int width = 2;
     if(cmd->first_opt!=NULL)
     {
         CCLI_OPT* curOpt = cmd->first_opt;
         while(curOpt) {
+            width = width<strlen(curOpt->long_name)?strlen(curOpt->long_name)+2:width;
+            curOpt = curOpt->next_opt;
+        }
+        curOpt = cmd->first_opt;
+        while(curOpt) {
             switch(curOpt->type)
             {
             case CCLI_OPT_INT:
-                PRINTF_OPT(curOpt->short_name, curOpt->long_name,"int", curOpt->help);
+                PRINTF_OPT(curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "int", curOpt->help);
                 break;
             case CCLI_OPT_FLOAT:
-                PRINTF_OPT(curOpt->short_name, curOpt->long_name,"float", curOpt->help);
+                PRINTF_OPT(curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "float", curOpt->help);
                 break;
             case CCLI_OPT_STRING:
-                PRINTF_OPT(curOpt->short_name, curOpt->long_name,"string", curOpt->help);
+                PRINTF_OPT(curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "string", curOpt->help);
                 break;
             default:
-                PRINTF_OPT(curOpt->short_name, curOpt->long_name,"", curOpt->help);
+                PRINTF_OPT(curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "", curOpt->help);
             }
             curOpt = curOpt->next_opt;
         }
     }
-    printf("  -h, --help  print help message.\n");
+    PRINTF_OPT('h', width, "help",OPTION_CHAR_WIDTH, "", "print help message.");
 
     if(cmd->epilog!=NULL)
     {
@@ -211,6 +225,15 @@ ccli_r_opt(CCLI_CMD *cmd, int *index, int argc, const char **argv)
             return;
         }
         CCLI_OPT *opt = cmd->first_opt;
+
+        if(!opt)
+        {
+            if(strcoll(str, "--help")==0||(str[0]=='-' && str[1]=='h'))
+            {
+                ccli_help(cmd);
+                exit(0);
+            }
+        }
 
         while(opt)
         {
