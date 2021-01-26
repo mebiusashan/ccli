@@ -5,10 +5,10 @@
 #include "ccli.h"
 
 
-struct ccli_cmd*
+CCLI_CMD*
 create_cmd(char *name,char *help, char *des, char *epilog, ccli_callback *callback)
 {
-    struct ccli_cmd *cmd = (struct ccli_cmd*)malloc(sizeof(struct ccli_cmd));
+    CCLI_CMD *cmd = (CCLI_CMD*)malloc(sizeof(CCLI_CMD));
     cmd->name = name;
     cmd->help = help;
     cmd->description = des;
@@ -24,16 +24,16 @@ create_cmd(char *name,char *help, char *des, char *epilog, ccli_callback *callba
     return cmd;
 }
 
-struct ccli_cmd*
+CCLI_CMD*
 set_root_cmd(char *name, char *help,char *des, char *epilog, ccli_callback *callback)
 {
     return create_cmd(name, help, des, epilog, callback);
 }
 
-struct ccli_cmd*
-set_sub_cmd( struct ccli_cmd *root, char *name, char *help, char *des, char *epilog, ccli_callback *callback)
+CCLI_CMD*
+set_sub_cmd( CCLI_CMD *root, char *name, char *help, char *des, char *epilog, ccli_callback *callback)
 {
-    struct ccli_cmd *sub_cmd = create_cmd(name, help, des, epilog, callback);
+    CCLI_CMD *sub_cmd = create_cmd(name, help, des, epilog, callback);
     sub_cmd->parent_cmd = root;
     if(root!=NULL)
     {
@@ -169,7 +169,7 @@ ccli_help(CCLI_CMD *cmd)
 }
 
 void
-ccli_r(struct ccli_cmd *root, int argc, const char **argv)
+ccli_r(CCLI_CMD *root, int argc, const char **argv)
 {
     //printf("argv nums: %d\n", argc);
     CCLI_CMD *cmd = root;//->first_sub_cmd;
@@ -181,25 +181,4 @@ ccli_r(struct ccli_cmd *root, int argc, const char **argv)
         cmd = cmd->next_cmd;
     }
     */
-}
-
-
-void 
-ccli_run(struct ccli_command *cmd, int argc, const char **argv){
-    printf("参数数量：%d\n", argc);
-    for(int i=0;i<argc;i++){
-            printf("%s\n", argv[i]);
-    }
-    
-    //int len = sizeof(cmd->sub_commands);
-    printf("cmds：%s\n", cmd->options->long_name);
-    
-    /*
-    if( len>0 ){
-        for(int i=0;i<len;i++){
-                printf("Command：%s\n", cmd->sub_commands->name);
-        }
-    }
-    */
-    
 }
