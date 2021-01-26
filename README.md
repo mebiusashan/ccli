@@ -103,7 +103,7 @@ epilog string
 ```
 
 ```
-./ccli -n5
+$ ./ccli -n5
 0 - 5 - 0.000000 -  
 0
 ```
