@@ -80,8 +80,36 @@ main ( int argc, const char **argv )
 
 ### Use
 
-`./ccli -h`
+```
+$ ./ccli -h
+this is help with root command.
 
-`./ccli -n5`
+Usage:
+  ff  [options]
+  ff  [command]
 
-`./ccli -f -d="this is des."`
+Commands:
+  add  Add content to the blog
+  rm   Add content to the blog
+
+Options:
+  -f, --force            force option.
+  -n, --num    <int>     num option.
+  -w, --width  <float>   width option.
+  -d, --des    <string>  description option.
+  -h, --help             print help message.
+
+epilog string
+```
+
+```
+./ccli -n5
+0 - 5 - 0.000000 -  
+0
+```
+
+```
+$ ./ccli -f -d="this is des."
+1 - 0 - 0.000000 - this is des. 
+0
+```
