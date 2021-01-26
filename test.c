@@ -11,6 +11,7 @@ char * ss = "";
 int rootRun(int argc, const char **argv)
 {
     printf("%d - %d - %f - %s \n", force, abc, cc, ss);
+    printf("%d\n",argc);
     for(int i=0; i<argc; i++) {
         printf("%s\n",argv[i]);
     }
