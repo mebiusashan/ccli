@@ -11,7 +11,7 @@ extern "C" {
 typedef struct ccli_cmd CCLI_CMD;
 typedef struct ccli_opt CCLI_OPT;
     
-typedef int ccli_callback (CCLI_CMD *self, const CCLI_OPT *option);
+typedef int ccli_callback (int argc, const char **argv);
 
 enum ccli_option_type {
     CCLI_OPT_BOOL,
@@ -55,7 +55,7 @@ set_sub_cmd( CCLI_CMD *root, char *name, char *help, char *des, char *epilog, cc
 void
 set_opt(CCLI_CMD *cmd, enum ccli_option_type type, char short_name, const char *long_name, void *value, const char *help);
 
-void
+int
 ccli_r(CCLI_CMD *root, int argc, const char **argv);
     
 

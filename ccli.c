@@ -123,10 +123,12 @@ ccli_help(CCLI_CMD *cmd)
     {
         printf("  %s [command]\n", cmds);
     }
+    /*
     if(curCmd->first_opt==NULL && curCmd->first_sub_cmd==NULL)
     {
         printf("  %s [args]\n", cmds);
     }
+    */
     
     if(curCmd->first_sub_cmd!=NULL)
     {
@@ -168,17 +170,81 @@ ccli_help(CCLI_CMD *cmd)
     }
 }
 
+CCLI_CMD *
+ccli_r_cmd(CCLI_CMD *cmd, int *index, int argc, const char **argv)
+{
+    if(*index>=argc)
+    {
+        return cmd;
+    }
+    
+    const char *str = argv[*index];
+    CCLI_CMD *curCmd = cmd->first_sub_cmd;
+    while(curCmd)
+    {
+        //printf("cmd: %s\n", curCmd->name);
+        if(strcoll(curCmd->name,str)==0)
+        {
+            (*index)++;
+            return ccli_r_cmd(curCmd, index, argc, argv);
+        }
+        curCmd = curCmd->next_cmd;
+    }
+    return cmd;
+}
+
 void
+ccli_r_opt(CCLI_CMD *cmd, int *index, int argc, const char **argv)
+{
+    for(int i=*index;i<argc;i++)
+    {
+        if(i>=argc){
+            return;
+        }
+        const char *str = argv[i];
+        if(str[0] != '-' || strlen(str)<2)
+        {
+            return;
+        }
+        CCLI_OPT *opt = cmd->first_opt;
+        
+        while(opt)
+        {
+            if(str[1]=='-')
+            {
+                if(strlen(str)>=(strlen(opt->long_name)+2))
+                {
+                    if(strcoll(str, opt->long_name)==-52)
+                    {
+                        
+                    }
+                }
+            }else{
+                if(str[1]==opt->short_name)
+                {
+                    
+                }
+            }
+        }
+    }
+}
+
+int
 ccli_r(CCLI_CMD *root, int argc, const char **argv)
 {
-    //printf("argv nums: %d\n", argc);
-    CCLI_CMD *cmd = root;//->first_sub_cmd;
-    ccli_help(cmd);
-    /*
-    while(cmd)
+    if(argc==1)
     {
-        printf("cmd: %s\n", cmd->name);
-        cmd = cmd->next_cmd;
+        return root->callback==NULL? 0 : root->callback(0,NULL);
     }
-    */
+    int index = 1;
+    CCLI_CMD *rcmd = ccli_r_cmd(root, &index, argc, argv);
+    ccli_r_opt(rcmd, &index, argc, argv);
+    
+    for(int i=0;i<argc;i++)
+    {
+            printf("%s\n", argv[i]);
+    }
+    //CCLI_CMD *cmd = root;//->first_sub_cmd;
+    //ccli_help(cmd);
+    return 0;
 }
