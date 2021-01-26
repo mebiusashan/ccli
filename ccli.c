@@ -279,6 +279,7 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                             }
                             break;
                         }
+                        break;
                     }
                 }
             } else {
@@ -338,6 +339,7 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                         }
                         break;
                     }
+                    break;
                 }
             }
             opt = opt->next_opt;
