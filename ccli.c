@@ -90,7 +90,7 @@ set_opt ( CCLI_CMD *cmd, enum ccli_option_type type, char short_name, const char
     }
 }
 
-#define OPTION_CHAR_WIDTH 8
+#define OPTION_CHAR_WIDTH 10
 #define PRINTF_OPT(...) printf("  -%c, --%-*s%-*s%s\n",__VA_ARGS__);
 
 void
@@ -150,13 +150,13 @@ ccli_help ( CCLI_CMD *cmd )
         while ( curOpt ) {
             switch ( curOpt->type ) {
             case CCLI_OPT_INT:
-                PRINTF_OPT ( curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "int", curOpt->help );
+                PRINTF_OPT ( curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "<int>", curOpt->help );
                 break;
             case CCLI_OPT_FLOAT:
-                PRINTF_OPT ( curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "float", curOpt->help );
+                PRINTF_OPT ( curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "<float>", curOpt->help );
                 break;
             case CCLI_OPT_STRING:
-                PRINTF_OPT ( curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "string", curOpt->help );
+                PRINTF_OPT ( curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "<string>", curOpt->help );
                 break;
             default:
                 PRINTF_OPT ( curOpt->short_name, width, curOpt->long_name,OPTION_CHAR_WIDTH, "", curOpt->help );
