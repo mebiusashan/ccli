@@ -78,6 +78,12 @@ main ( int argc, const char **argv )
 }
 ```
 
+### Test Build
+
+```
+gcc test.c ccli.h ccli.c -o ccli
+```
+
 ### Use
 
 ```
