@@ -41,7 +41,7 @@ set_sub_cmd( CCLI_CMD *root, char *name, char *help, char *des, char *epilog, cc
         {
             root->first_sub_cmd=sub_cmd;
         }
-        
+
         if(root->last_sub_cmd==NULL)
         {
             root->last_sub_cmd = sub_cmd;
@@ -50,7 +50,7 @@ set_sub_cmd( CCLI_CMD *root, char *name, char *help, char *des, char *epilog, cc
                 root->first_sub_cmd->next_cmd = root->last_sub_cmd;
                 root->last_sub_cmd->prev_cmd = root->first_sub_cmd;
             }
-        }else{
+        } else {
             root->last_sub_cmd->next_cmd = sub_cmd;
             sub_cmd->prev_cmd = root->last_sub_cmd;
             root->last_sub_cmd = sub_cmd;
@@ -77,10 +77,10 @@ void
 set_opt(CCLI_CMD *cmd, enum ccli_option_type type, char short_name, const char *long_name, void *value, const char *help)
 {
     CCLI_OPT *opt = create_opt(type, short_name, long_name, value, help);
-    if(cmd->first_opt==NULL){
+    if(cmd->first_opt==NULL) {
         cmd->first_opt = opt;
     }
-    
+
     if(cmd->last_opt==NULL)
     {
         cmd->last_opt = opt;
@@ -89,7 +89,7 @@ set_opt(CCLI_CMD *cmd, enum ccli_option_type type, char short_name, const char *
             cmd->first_opt->next_opt = opt;
             opt->prev_opt = cmd->first_opt;
         }
-    }else{
+    } else {
         cmd->last_opt->next_opt = opt;
         opt->prev_opt = cmd->last_opt;
         cmd->last_opt = opt;
@@ -129,41 +129,41 @@ ccli_help(CCLI_CMD *cmd)
         printf("  %s [args]\n", cmds);
     }
     */
-    
+
     if(curCmd->first_sub_cmd!=NULL)
     {
         printf("\nCommands:\n");
         curCmd = cmd->first_sub_cmd;
-        while(curCmd){
-              printf("  %s  %s\n",curCmd->name, curCmd->description);
-              curCmd = curCmd->next_cmd;
+        while(curCmd) {
+            printf("  %s  %s\n",curCmd->name, curCmd->description);
+            curCmd = curCmd->next_cmd;
         }
     }
-    
+
     printf("\nOptions:\n");
     if(cmd->first_opt!=NULL)
     {
         CCLI_OPT* curOpt = cmd->first_opt;
-        while(curOpt){
+        while(curOpt) {
             switch(curOpt->type)
             {
-                case CCLI_OPT_INT:
-                    PRINTF_OPT(curOpt->short_name, curOpt->long_name,"int", curOpt->help);
-                    break;
-                case CCLI_OPT_FLOAT:
-                    PRINTF_OPT(curOpt->short_name, curOpt->long_name,"float", curOpt->help);
-                    break;
-                case CCLI_OPT_STRING:
-                    PRINTF_OPT(curOpt->short_name, curOpt->long_name,"string", curOpt->help);
-                    break;
-                default:
-                    PRINTF_OPT(curOpt->short_name, curOpt->long_name,"", curOpt->help);
+            case CCLI_OPT_INT:
+                PRINTF_OPT(curOpt->short_name, curOpt->long_name,"int", curOpt->help);
+                break;
+            case CCLI_OPT_FLOAT:
+                PRINTF_OPT(curOpt->short_name, curOpt->long_name,"float", curOpt->help);
+                break;
+            case CCLI_OPT_STRING:
+                PRINTF_OPT(curOpt->short_name, curOpt->long_name,"string", curOpt->help);
+                break;
+            default:
+                PRINTF_OPT(curOpt->short_name, curOpt->long_name,"", curOpt->help);
             }
             curOpt = curOpt->next_opt;
         }
     }
     printf("  -h, --help  print help message.\n");
-    
+
     if(cmd->epilog!=NULL)
     {
         printf("\n%s\n", cmd->epilog);
@@ -177,7 +177,7 @@ ccli_r_cmd(CCLI_CMD *cmd, int *index, int argc, const char **argv)
     {
         return cmd;
     }
-    
+
     const char *str = argv[*index];
     CCLI_CMD *curCmd = cmd->first_sub_cmd;
     while(curCmd)
@@ -193,38 +193,130 @@ ccli_r_cmd(CCLI_CMD *cmd, int *index, int argc, const char **argv)
     return cmd;
 }
 
+#define CCLI_LONG_NAME_PREFIX 2
+#define CCLI_SHORT_NAME_PREFIX 1
+
 void
 ccli_r_opt(CCLI_CMD *cmd, int *index, int argc, const char **argv)
 {
-    for(int i=*index;i<argc;i++)
+    for(int i=*index; i<argc; i++)
     {
-        if(i>=argc){
+        *index = i;
+        if(i>=argc) {
             return;
         }
         const char *str = argv[i];
-        if(str[0] != '-' || strlen(str)<2)
+        if(str[0] != '-' || strlen(str)<CCLI_LONG_NAME_PREFIX)
         {
             return;
         }
         CCLI_OPT *opt = cmd->first_opt;
-        
+
         while(opt)
         {
             if(str[1]=='-')
             {
-                if(strlen(str)>=(strlen(opt->long_name)+2))
+                if(strlen(str)>=(strlen(opt->long_name)+CCLI_LONG_NAME_PREFIX))
                 {
-                    if(strcoll(str, opt->long_name)==-52)
+                    int l = strlen(opt->long_name);
+                    char *c = (char *)malloc(l);
+                    const char *s = str+CCLI_LONG_NAME_PREFIX;
+                    memcpy(c, s, l);
+                    if(strcoll(c, "help")==0)
                     {
-                        
+                        ccli_help(cmd);
+                        exit(0);
+                    }
+                    //printf("%s - %s -- %d\n", s, opt->long_name, strcoll(c, opt->long_name));
+                    if(strcoll(c, opt->long_name)==0)
+                    {
+                        switch(opt->type)
+                        {
+                        case CCLI_OPT_BOOL:
+                            *(int *)opt->value = 1;
+                            break;
+                        case CCLI_OPT_INT:
+                            if(l==strlen(str)-CCLI_LONG_NAME_PREFIX)
+                            {
+                                *(int *)opt->value = atoi(argv[i++]);
+                            } else {
+                                int offset = str[CCLI_LONG_NAME_PREFIX+l]=='='?1:0;
+                                const char *v = str + CCLI_LONG_NAME_PREFIX +l+offset;
+                                *(int *)opt->value = atoi(v);
+                            }
+                            break;
+                        case CCLI_OPT_FLOAT:
+                            if(l==strlen(str)-CCLI_LONG_NAME_PREFIX)
+                            {
+                                *(float *) opt->value = atof(argv[i++]);
+                            } else {
+                                int offset = str[CCLI_LONG_NAME_PREFIX+l]=='='?1:0;
+                                const char *v = str + CCLI_LONG_NAME_PREFIX +l+offset;
+                                *(float *)opt->value = atof(v);
+                            }
+                            break;
+                        case CCLI_OPT_STRING:
+                            if(l==strlen(str)-CCLI_LONG_NAME_PREFIX)
+                            {
+                                *(const char **)opt->value = (char *)argv[++i];
+                            } else {
+                                int offset = str[CCLI_LONG_NAME_PREFIX+l]=='='?1:0;
+                                const char *v = str + CCLI_LONG_NAME_PREFIX +l+offset;
+                                *(const char **)opt->value = (char *)v;
+                            }
+                            break;
+                        }
                     }
                 }
-            }else{
+            } else {
+                if(str[1]=='h')
+                {
+                    ccli_help(cmd);
+                    exit(0);
+                }
+
                 if(str[1]==opt->short_name)
                 {
-                    
+                    int l =1;
+                    switch(opt->type)
+                    {
+                    case CCLI_OPT_BOOL:
+                        *(int *)opt->value = 1;
+                        break;
+                    case CCLI_OPT_INT:
+                        if(l==strlen(str)-CCLI_SHORT_NAME_PREFIX)
+                        {
+                            *(int *)opt->value = atoi(argv[i++]);
+                        } else {
+                            int offset = str[CCLI_SHORT_NAME_PREFIX+l]=='='?1:0;
+                            const char *v = str + CCLI_SHORT_NAME_PREFIX +l+offset;
+                            *(int *)opt->value = atoi(v);
+                        }
+                        break;
+                    case CCLI_OPT_FLOAT:
+                        if(l==strlen(str)-CCLI_SHORT_NAME_PREFIX)
+                        {
+                            *(float *) opt->value = atof(argv[i++]);
+                        } else {
+                            int offset = str[CCLI_SHORT_NAME_PREFIX+l]=='='?1:0;
+                            const char *v = str + CCLI_SHORT_NAME_PREFIX +l+offset;
+                            *(float *)opt->value = atof(v);
+                        }
+                        break;
+                    case CCLI_OPT_STRING:
+                        if(l==strlen(str)-CCLI_SHORT_NAME_PREFIX)
+                        {
+                            *(const char **)opt->value = (char *)argv[++i];
+                        } else {
+                            int offset = str[CCLI_SHORT_NAME_PREFIX+l]=='='?1:0;
+                            const char *v = str + CCLI_SHORT_NAME_PREFIX +l+offset;
+                            *(const char **)opt->value = (char *)v;
+                        }
+                        break;
+                    }
                 }
             }
+            opt = opt->next_opt;
         }
     }
 }
@@ -239,12 +331,5 @@ ccli_r(CCLI_CMD *root, int argc, const char **argv)
     int index = 1;
     CCLI_CMD *rcmd = ccli_r_cmd(root, &index, argc, argv);
     ccli_r_opt(rcmd, &index, argc, argv);
-    
-    for(int i=0;i<argc;i++)
-    {
-            printf("%s\n", argv[i]);
-    }
-    //CCLI_CMD *cmd = root;//->first_sub_cmd;
-    //ccli_help(cmd);
-    return 0;
+    return root->callback==NULL? 0 : root->callback(argc-index,argv+=index);
 }
