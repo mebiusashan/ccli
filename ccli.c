@@ -194,6 +194,38 @@ ccli_r_cmd ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
 #define CCLI_LONG_NAME_PREFIX 2
 #define CCLI_SHORT_NAME_PREFIX 1
 
+
+void
+ccli_r_opt_flags(CCLI_CMD *cmd, const char *str, int index)
+{
+    const int len = strlen(str);
+    for(int i =index;i<len;i++){
+        CCLI_OPT *opt = cmd->first_opt;
+        int has = 0;
+        if(str[i]=='h'){
+            ccli_help ( cmd );
+            exit ( 0 );
+        }
+        while(opt){
+            if ( str[i]==opt->short_name ) {
+                has = 1;
+                if(opt->type==CCLI_OPT_BOOL){
+                    * ( int * ) opt->value = 1;
+                    break;
+                }else{
+                    fprintf ( stderr, "error: invalid option \'-%c\'\n", str[i] );
+                    exit ( 1 );
+                }
+            }
+            opt = opt->next_opt;
+        }
+        if(!has){
+            fprintf ( stderr, "error: invalid option \'-%c\'\n", str[i] );
+            exit ( 1 );   
+        }
+    }
+}
+
 void
 ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
 {
@@ -295,6 +327,7 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
                     switch ( opt->type ) {
                     case CCLI_OPT_BOOL:
                         * ( int * ) opt->value = 1;
+                        ccli_r_opt_flags(cmd, str, 2);
                         break;
                     case CCLI_OPT_INT:
                         if ( l==strlen ( str )-CCLI_SHORT_NAME_PREFIX ) {
