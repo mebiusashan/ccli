@@ -464,7 +464,11 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
 void
 ccli_free()
 {
-    
+    int l = CCLI_CMD_LIST_UNIT_LEN*cmd_list_g;
+    for(int i=0;i<l;i++){
+            free(cmd_list[i].cmd);
+    }
+    free(cmd_list);
 }
 
 int

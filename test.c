@@ -30,5 +30,5 @@ main ( int argc, const char **argv )
     set_opt ( root, CCLI_OPT_FLOAT, 'w', "width", &cc, "width option." );
     set_opt ( root, CCLI_OPT_STRING, 'd', "des", &ss, "description option." );
 
-    return ccli_r ( root, argc, argv );
+    return  ccli_r ( root, argc, argv );
 }
