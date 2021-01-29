@@ -4,11 +4,83 @@
 #include<string.h>
 #include "ccli.h"
 
+typedef struct ccli_cmd CCLI_CMD;
+typedef struct ccli_opt CCLI_OPT;
+
+struct  ccli_opt {
+    enum ccli_option_type type;
+    char short_name;
+    const char *long_name;
+    //CCLI_OPT *prev_opt;
+    CCLI_OPT *next_opt;
+    void *value;
+    const char *help;
+    //intptr_t data;
+};
+
+struct ccli_cmd {
+    cmd_t id;
+    const char *name;
+    const char *help;
+    const char *description;
+    const char *epilog;
+    ccli_callback *callback;
+    CCLI_OPT *first_opt;
+    CCLI_OPT *last_opt;
+    CCLI_CMD *first_sub_cmd;
+    CCLI_CMD *last_sub_cmd;
+    CCLI_CMD *parent_cmd;
+    //CCLI_CMD *prev_cmd;
+    CCLI_CMD *next_cmd;
+};
+
+#define CCLI_CMD_LIST_UNIT_LEN 16
+typedef  struct ccli_cmd_data_type {
+        cmd_t id;
+        CCLI_CMD *cmd;
+}CMD_LIST;
+int cmd_list_g = 1;
+CMD_LIST *cmd_list;
+void
+check_cmd_list(cmd_t index)
+{
+    if(cmd_list==NULL){
+            cmd_list = malloc(CCLI_CMD_LIST_UNIT_LEN*cmd_list_g*sizeof(CCLI_CMD*));
+    }
+    if(index >= CCLI_CMD_LIST_UNIT_LEN*cmd_list_g){
+        int curLen = CCLI_CMD_LIST_UNIT_LEN*cmd_list_g;
+        int add_g = (index+1 - index%curLen )/CCLI_CMD_LIST_UNIT_LEN;
+        cmd_list_g+=add_g;
+        cmd_list = realloc(cmd_list, CCLI_CMD_LIST_UNIT_LEN*cmd_list_g*sizeof(CCLI_CMD*));
+    }
+}
+void
+add_cmd_to_list(CCLI_CMD *cmd){
+    check_cmd_list(cmd->id);
+    CMD_LIST *list = (CMD_LIST *)malloc(sizeof(CMD_LIST *));
+    list->id = cmd->id;
+    list->cmd = cmd;
+    cmd_list[list->id] = *list;
+}
+
+CCLI_CMD*
+get_cmd(cmd_t id)
+{
+    return cmd_list[id].cmd;
+}
+
+cmd_t _cmd_id = 0;
+cmd_t
+get_cmd_id()
+{
+    return _cmd_id++;
+}
 
 CCLI_CMD*
 create_cmd ( char *name,char *help, char *des, char *epilog, ccli_callback *callback )
 {
     CCLI_CMD *cmd = ( CCLI_CMD* ) malloc ( sizeof ( CCLI_CMD ) );
+    cmd->id = get_cmd_id();
     cmd->name = name;
     cmd->help = help;
     cmd->description = des;
@@ -21,19 +93,22 @@ create_cmd ( char *name,char *help, char *des, char *epilog, ccli_callback *call
     cmd->parent_cmd = NULL;
     cmd->next_cmd = NULL;
     //cmd->prev_cmd = NULL;
+    
+    add_cmd_to_list(cmd);
     return cmd;
 }
 
-CCLI_CMD*
+cmd_t
 set_root_cmd ( char *name, char *help,char *des, char *epilog, ccli_callback *callback )
 {
-    return create_cmd ( name, help, des, epilog, callback );
+    return create_cmd ( name, help, des, epilog, callback )->id;
 }
 
-CCLI_CMD*
-set_sub_cmd ( CCLI_CMD *root, char *name, char *help, char *des, char *epilog, ccli_callback *callback )
+cmd_t
+set_sub_cmd (  cmd_t parent,  char *name, char *help, char *des, char *epilog, ccli_callback *callback )
 {
     CCLI_CMD *sub_cmd = create_cmd ( name, help, des, epilog, callback );
+    CCLI_CMD *root = get_cmd(parent);
     sub_cmd->parent_cmd = root;
     if ( root!=NULL ) {
         if ( root->first_sub_cmd==NULL ) {
@@ -52,7 +127,7 @@ set_sub_cmd ( CCLI_CMD *root, char *name, char *help, char *des, char *epilog, c
             root->last_sub_cmd = sub_cmd;
         }
     }
-    return sub_cmd;
+    return sub_cmd->id;
 }
 
 CCLI_OPT*
@@ -70,8 +145,9 @@ create_opt ( enum ccli_option_type type, char short_name, const char *long_name,
 }
 
 void
-set_opt ( CCLI_CMD *cmd, enum ccli_option_type type, char short_name, const char *long_name, void *value, const char *help )
+set_opt ( cmd_t cmd_id, enum ccli_option_type type, char short_name, const char *long_name, void *value, const char *help )
 {
+     CCLI_CMD *cmd = get_cmd(cmd_id);
     CCLI_OPT *opt = create_opt ( type, short_name, long_name, value, help );
     if ( cmd->first_opt==NULL ) {
         cmd->first_opt = opt;
@@ -385,14 +461,23 @@ ccli_r_opt ( CCLI_CMD *cmd, int *index, int argc, const char **argv )
     *index = i;
 }
 
-int
-ccli_r ( CCLI_CMD *root, int argc, const char **argv )
+void
+ccli_free()
 {
+    
+}
+
+int
+ccli_r ( cmd_t root_id, int argc, const char **argv )
+{
+    CCLI_CMD *root = get_cmd(root_id);
     if ( argc==1 ) {
         return root->callback==NULL? 0 : root->callback ( 0,NULL );
     }
     int index = 1;
     CCLI_CMD *rcmd = ccli_r_cmd ( root, &index, argc, argv );
     ccli_r_opt ( rcmd, &index, argc, argv );
-    return rcmd->callback==NULL? 0 : rcmd->callback ( argc-index,argv+=index );
+    int rel =  rcmd->callback==NULL? 0 : rcmd->callback ( argc-index,argv+=index );
+    ccli_free();
+    return rel;
 }
