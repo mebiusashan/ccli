@@ -28,6 +28,9 @@ set_sub_cmd( cmd_t parent, char *name, char *help, char *des, char *epilog, ccli
 void
 set_opt(cmd_t cmd_id, enum ccli_option_type type, char short_name, const char *long_name, void *value, const char *help);
 
+void
+print_help(cmd_t cmd_id);
+
 int
 ccli_r(cmd_t root_id, int argc, const char **argv);
 

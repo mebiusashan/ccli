@@ -191,13 +191,12 @@ ccli_help ( CCLI_CMD *cmd )
     if ( curCmd->first_sub_cmd!=NULL ) {
         printf ( "  %s [command]\n", cmds );
     }
-    /*
+    
     if(curCmd->first_opt==NULL && curCmd->first_sub_cmd==NULL)
     {
         printf("  %s [args]\n", cmds);
     }
-    */
-
+    
     if ( curCmd->first_sub_cmd!=NULL ) {
         printf ( "\nCommands:\n" );
         int width = 2;
@@ -469,6 +468,15 @@ ccli_free()
             free(cmd_list[i].cmd);
     }
     free(cmd_list);
+}
+
+void
+print_help(cmd_t cmd_id)
+{
+    CCLI_CMD *cmd = get_cmd(cmd_id);
+    if(cmd!=NULL){
+        ccli_help ( cmd );
+    }
 }
 
 int
